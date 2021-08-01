@@ -18,5 +18,5 @@ This feature will sync metadata file with its media file. The metadata and its m
 ### Remove the original files
 The script will produce new file after sync and rename original file with suffix (e.g. DSCF00001.JPG_original). This feature will remove all originals.
 
-### Remove the metada files
+### Remove the metadata files
 This feature will remove all metadata.
