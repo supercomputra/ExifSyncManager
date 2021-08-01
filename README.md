@@ -1,5 +1,5 @@
 # ExifSyncManager
-Sync image's metadata files using exiftool.
+Script for syncing image's metadata files using exiftool.
 
 ## Prerequisite
 This script using exiftool to update media's metadata files. Please install [exiftool](https://exiftool.org) on your machine before get started.
