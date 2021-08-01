@@ -2,6 +2,7 @@ import os
 import sys
 from posixpath import join
 from typing import List, Optional
+import argparse
 
 # Constants
 JPEG_EXT = "JPG"
@@ -228,19 +229,24 @@ def get_action() -> int:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        root = sys.argv[1]
-        if not os.path.isdir(root):
-            print(f"> The directory {root} not found! Please try again.")
-        else:
-            program = Program(root=root)
-            action = get_action()
-            if action == 1:
-                should_remove_originals = get_should_remove_originals()
-                program.sync_images(should_remove_originals)
-            elif action == 2:
-                program.clean_originals()
-            elif action == 3:
-                program.clean_metadata_files()
-    else:
-        print(f"> Root directory is required to run this program. Please try again.")
+    parser = argparse.ArgumentParser(description="Exif Sync Manaager.")
+
+    parser.add_argument(
+        "-p", "--path",
+        dest="path",
+        required=True,
+        help="The root directory"
+    )
+
+    args = parser.parse_args()
+
+    root = args.path
+    program = Program(root=root)
+    action = get_action()
+    if action == 1:
+        should_remove_originals = get_should_remove_originals()
+        program.sync_images(should_remove_originals)
+    elif action == 2:
+        program.clean_originals()
+    elif action == 3:
+        program.clean_metadata_files()
