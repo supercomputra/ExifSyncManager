@@ -52,7 +52,7 @@ class Program:
         self.root = root
 
     def confirmation(self, question: str) -> bool:
-        ans = input(f"> {question} (y/n): ")
+        ans = input(f"{question} (y/n): ")
         if ans == "y":
             return True
         elif ans == "n":
@@ -209,7 +209,7 @@ def get_should_remove_originals() -> bool:
 
 
 def get_action() -> int:
-    ans = input("> Menu: \n\t 1. Sync images with its metadata.\n\t2. Remove \"_original\" files.\n\t3. Remove metadata files.\n> Please input action number: ")
+    ans = input("> Menu: \n\t1. Sync images with its metadata.\n\t2. Remove \"_original\" files.\n\t3. Remove metadata files.\n> Please input action number: ")
     try:
         action = int(ans)
         if action < 1 or action > 3:
