@@ -1,4 +1,5 @@
 import os
+import sys
 from posixpath import join
 from typing import List, Optional
 
@@ -66,8 +67,12 @@ class Program:
         list: List[ImageData] = []
 
         for item in os.listdir(dir):
-            item_name = item.split(".")[0]
-            item_extension = item.split(".")[1]
+            file_anatomies: List[str] = item.split(".")
+            if len(file_anatomies) < 2:
+                continue
+
+            item_name = file_anatomies[0]
+            item_extension = file_anatomies[1]
             jpeg_url = join(dir, item)
 
             # make sure the jpeg file exist with the extension
@@ -97,6 +102,9 @@ class Program:
         list = self.get_image_data_list()
         success_count = 0
         print(f"> Found {len(list)} images to sync ...")
+        if len(list) == 0:
+            return
+
         confirmed = self.confirmation(
             f"> Are you sure to sync {len(list)} images?")
 
@@ -125,6 +133,9 @@ class Program:
         list = self.get_image_data_list()
         success_count = 0
         print(f"> Found {len(list)} images to clean ...")
+
+        if len(list) == 0:
+            return
 
         confirmed = self.confirmation(
             f"> Are you sure to clean {len(list)} image metadata files?")
@@ -158,6 +169,9 @@ class Program:
         success_count = 0
         print(f"> Found {len(list)} images to clean ...")
 
+        if len(list) == 0:
+            return
+
         confirmed = self.confirmation(
             f"> Are you sure to clean {len(list)} image original files?")
 
@@ -188,15 +202,6 @@ class Program:
                     f"> Cleaning original images: {formatted_progress}% ({success_count}/{len(list)}) images cleaned", end="\r")
 
 
-def get_target_dir() -> str:
-    target_dir = input("> Target directory: ")
-    if not os.path.isdir(target_dir):
-        print(f"> The directory {target_dir} not found! Please try again.")
-        return get_target_dir()
-    else:
-        return target_dir
-
-
 def get_should_remove_originals() -> bool:
     ans = input("> Remove originals after new file created? (y/n): ")
     if ans == "y":
@@ -223,13 +228,19 @@ def get_action() -> int:
 
 
 if __name__ == "__main__":
-    root = get_target_dir()
-    program = Program(root=root)
-    action = get_action()
-    if action == 1:
-        should_remove_originals = get_should_remove_originals()
-        program.sync_images(should_remove_originals)
-    elif action == 2:
-        program.clean_originals()
-    elif action == 3:
-        program.clean_metadata_files()
+    if len(sys.argv) > 1:
+        root = sys.argv[1]
+        if not os.path.isdir(root):
+            print(f"> The directory {root} not found! Please try again.")
+        else:
+            program = Program(root=root)
+            action = get_action()
+            if action == 1:
+                should_remove_originals = get_should_remove_originals()
+                program.sync_images(should_remove_originals)
+            elif action == 2:
+                program.clean_originals()
+            elif action == 3:
+                program.clean_metadata_files()
+    else:
+        print(f"> Root directory is required to run this program. Please try again.")
