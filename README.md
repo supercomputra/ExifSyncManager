@@ -1,6 +1,6 @@
 # ExifSyncManager
 
-Script for syncing image's metadata files using exiftool.
+Script for syncing image's metadata files using exiftool. This script will embed any information on your image's metadata file to the original image's file. The creation date and modification date of the file will be set as same as the image taken date based on the information specified in the metadata.
 
 ## Prerequisite
 
@@ -14,7 +14,7 @@ In the project directory, run the script using command below:
 python3 main.py --path YOUR_DIRECTORY_PATH
 ```
 
-By default, this script accept media with extension .JPG, metadata with .xmp extension, and RAW file with .raf extension. For other extension please modify constans defined on the top of main.py. Please check [exiftool](https://exiftool.org) for supported format.
+**By default, this script accept media with extension .JPG, metadata with .xmp extension, and RAW file with .raf extension. For other extension options please modify constans defined on the top of main.py. Please check [exiftool](https://exiftool.org) for the supported format.**
 
 ```
 optional arguments:
