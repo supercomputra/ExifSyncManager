@@ -22,6 +22,9 @@ optional arguments:
   -p PATH, --path PATH  The root directory
 ```
 
+<img width="780" alt="Screen Shot 2021-08-02 at 01 21 50" src="https://user-images.githubusercontent.com/17508929/127781405-001b8ef5-6d33-4b0e-90cd-2bcc7ca44f01.png">
+
+
 ## Features
 
 ### Images sync
