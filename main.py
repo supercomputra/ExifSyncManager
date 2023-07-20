@@ -3,9 +3,11 @@ import sys
 from posixpath import join
 from typing import List, Optional
 import argparse
+import time
 
 # Constants
 JPEG_EXT = "JPG"
+MOV_EXT = "MOV"
 METADATA_EXT = "xmp"
 RAW_EXT = "raf"
 
@@ -48,6 +50,20 @@ class ImageData:
         self.sync_media(self.raw_url, self.metadata_url,
                         should_remove_original)
 
+class VideoData: 
+    def __init__(self, mov_url: str, metadata_url: str, output_dir: Optional[str] = None):
+        self.mov_url = mov_url
+        self.metadata_url = metadata_url
+        self.output_dir = output_dir
+    
+    def sync(self, should_remove_original: bool = False):
+        dir = self.output_dir if self.output_dir is not None else os.path.dirname(self.mov_url)
+        command = f'exiftool -tagsfromfile "{self.metadata_url}" -xmp:all -ext mov -ext mov "{dir}"'
+        os.system(command)
+
+        if should_remove_original:
+            remove_command = f"rm -rf {self.mov_url}_original"
+            os.system(remove_command)
 
 class Program:
     def __init__(self, root: str):
@@ -96,6 +112,40 @@ class Program:
             list.append(image_data)
 
         return list
+    
+    def get_video_data_list(self, dir: str, output_dir: Optional[str] = None) -> List[VideoData]:
+        list: List[VideoData] = []
+
+        for item in os.listdir(dir):
+            path = join(dir, item)
+            if (os.path.isdir(path) == True):
+                sublist = self.get_video_data_list(path)
+
+                for item in sublist:
+                    list.append(item)
+            elif (os.path.isfile(path) == True):
+                file_anatomies: List[str] = item.split(".")
+
+                if len(file_anatomies) < 2:
+                    continue
+
+                item_name = file_anatomies[0]
+                item_extension = file_anatomies[1]
+                
+                if (item_extension != MOV_EXT) and (item_extension != MOV_EXT.lower()):
+                    continue
+
+                # make sure the metadata exists with the same file name
+                metadata_url = join(dir, f"{item_name}.{METADATA_EXT}")
+                if (os.path.isfile(metadata_url) != True):
+                    continue
+
+                video = VideoData(path, metadata_url, output_dir)
+
+                # append the image data
+                list.append(video)
+
+        return list
 
     def sync_images(self, should_remove_originals: bool = False):
         dir = self.root
@@ -127,6 +177,40 @@ class Program:
                     f"> Syncing images: {formatted_progress}% ({success_count}/{len(list)}) images sync", end="\r")
 
         print(f"> {success_count}/{len(list)} images successfully sync!")
+
+    def sync_videos(self, should_remove_originals: bool = False):
+        dir = self.root
+        output_dir = os.path.join(dir, f"exif_sync_manager_output_{round(time.time() * 1000)}")
+        os.mkdir(output_dir)
+
+        print(f"> Getting videos to sync at {dir} ...")
+        list = self.get_video_data_list(self.root)
+        success_count = 0
+        print(f"> Found {len(list)} videos to sync ...")
+        if len(list) == 0:
+            return
+
+        confirmed = self.confirmation(
+            f"> Are you sure to sync {len(list)} videos?")
+
+        if not confirmed:
+            print("> Images sync cancelled!")
+            return
+        
+        for item in list:
+            item.sync(should_remove_originals)
+            success_count += 1
+            progress = float(success_count)/float(len(list)) * 100.0
+            formatted_progress = "{:.2f}".format(progress)
+
+            if success_count == len(list):
+                print(
+                    f"> Syncing videos: {formatted_progress}% ({success_count}/{len(list)}) videos sync. Done!")
+            else:
+                print(
+                    f"> Syncing videos: {formatted_progress}% ({success_count}/{len(list)}) videos sync", end="\r")
+
+        print(f"> {success_count}/{len(list)} videos successfully sync!")
 
     def clean_metadata_files(self):
         dir = self.root
@@ -215,7 +299,12 @@ def get_should_remove_originals() -> bool:
 
 
 def get_action() -> int:
-    ans = input("> Menu: \n\t1. Sync images with its metadata.\n\t2. Remove \"_original\" files.\n\t3. Remove metadata files.\n> Please input action number: ")
+    ans = input("""> Menu: 
+                \n\t1. Sync videos with its metadata.
+                \n\t2. Sync images with its metadata. 
+                \n\t3. Remove \"_original\" files.
+                \n\t4. Remove metadata files.
+                \n> Please input action number: """)
     try:
         action = int(ans)
         if action < 1 or action > 3:
@@ -245,8 +334,11 @@ if __name__ == "__main__":
     action = get_action()
     if action == 1:
         should_remove_originals = get_should_remove_originals()
+        program.sync_videos(should_remove_originals)
+    if action == 2:
+        should_remove_originals = get_should_remove_originals()
         program.sync_images(should_remove_originals)
-    elif action == 2:
-        program.clean_originals()
     elif action == 3:
+        program.clean_originals()
+    elif action == 4:
         program.clean_metadata_files()
